@@ -1,0 +1,28 @@
+[project]
+name = "kev-substrate-mojo"
+version = "0.1.0"
+authors = ["Casey Digennaro", "Mavis"]
+description = "Mojo port of kev-substrate — GPU-native, vendor-universal, horizontal-abilities engineering"
+license = "Apache-2.0"
+repository = "https://github.com/SuperInstance/kev-substrate-mojo"
+homepage = "https://github.com/SuperInstance/kev-substrate-mojo"
+
+[dependencies]
+modular = ">=0.25.0"
+
+[features]
+default = ["substrate", "splines", "quantum"]
+substrate = []
+splines = []
+quantum = []
+gpu = []  # requires CUDA toolkit or ROCm
+
+[[target]]
+name = "kev-substrate"
+type = "executable"
+sources = ["bin/kev-substrate.mojo", "src/substrate/*.mojo", "src/api/*.mojo"]
+
+[[target]]
+name = "kev-substrate-tests"
+type = "test"
+sources = ["tests/*.mojo", "src/**/*.mojo"]
