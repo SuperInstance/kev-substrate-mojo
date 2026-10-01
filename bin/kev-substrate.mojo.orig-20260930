@@ -9,25 +9,25 @@ from substrate.client import SubstrateClient
 from splines.snap import make_snap
 
 
-def main():
+fn main():
     # Parse args (simplified — real impl uses proper arg parsing)
-    var args = get_args()
+    let args = get_args()
     
     var client = SubstrateClient()
     
     if "--search" in args:
-        var query = get_arg_value(args, "--search")
-        var top_k_str = get_arg_value(args, "--top-k")
-        var top_k = Int(top_k_str) if top_k_str else 5
-        var results = client.jev_search(query, top_k)
+        let query = get_arg_value(args, "--search")
+        let top_k_str = get_arg_value(args, "--top-k")
+        let top_k = Int(top_k_str) if top_k_str else 5
+        let results = client.jev_search(query, top_k)
         print("JEV search results:")
         print(results)
     elif "--state" in args and "--question" in args:
-        var state = get_arg_value(args, "--state")
-        var question_str = get_arg_value(args, "--question")
+        let state = get_arg_value(args, "--state")
+        let question_str = get_arg_value(args, "--question")
         # Simple parsing: "qid:type:text:opt1=val1|opt2=val2"
-        var question_json = parse_question(question_str)
-        var result = client.systemone(state, question_json)
+        let question_json = parse_question(question_str)
+        let result = client.systemone(state, question_json)
         print("SystemOne result:")
         print("  answers: " + result.answers_json)
         print("  cell_id: " + result.cell_id)
@@ -37,8 +37,8 @@ def main():
         print("  latency_ms: " + String(result.latency_ms))
     elif "--snap" in args:
         # Demo: snap a question with mock confidence
-        var question = get_arg_value(args, "--snap")
-        var snap = make_snap(question, "noul", "yes", 0.85)
+        let question = get_arg_value(args, "--snap")
+        let snap = make_snap(question, "noul", "yes", 0.85)
         print("SplineSnap:")
         print(snap.to_dict())
     else:

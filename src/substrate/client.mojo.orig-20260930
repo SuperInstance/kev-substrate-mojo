@@ -15,11 +15,11 @@ struct SystemOneRequest:
     var state: String
     var questions_json: String  # JSON-encoded questions dict
     
-    def __init__(out self, state: String, questions_json: String):
+    fn __init__(inout self, state: String, questions_json: String):
         self.state = state
         self.questions_json = questions_json
     
-    def to_payload(self) -> String:
+    fn to_payload(self) -> String:
         return String("{") + \
                "\"state\":\"" + escape_json(self.state) + "\"," + \
                "\"questions\":" + String(self.questions_json) + \
@@ -43,7 +43,7 @@ struct SubstrateClient:
     var embed: Bool
     var request_count: Int
     
-    def __init__(out self, kev_url: String = "http://127.0.0.1:8009",
+    fn __init__(inout self, kev_url: String = "http://127.0.0.1:8009",
                 substrate_url: String = "https://quilt-distributed.casey-digennaro.workers.dev",
                 conversation_id: String = "default", embed: Bool = True):
         self.kev_url = kev_url
@@ -53,7 +53,7 @@ struct SubstrateClient:
         self.embed = embed
         self.request_count = 0
     
-    def systemone(mut self, state: String, questions_json: String) -> SubstrateResult:
+    fn systemone(inout self, state: String, questions_json: String) -> SubstrateResult:
         """Call kev's /v1/systemone and record as a substrate cell.
         
         Args:
@@ -65,30 +65,30 @@ struct SubstrateClient:
             SubstrateResult with answers, cell_id, prev_hash, hash, embedding_id, latency_ms
         """
         # Start timer
-        var t0 = now_ms()
+        let t0 = now_ms()
         
         # Build request
-        var request = SystemOneRequest(state, questions_json)
-        var payload = request.to_payload()
+        let request = SystemOneRequest(state, questions_json)
+        let payload = request.to_payload()
         
         # POST to kev (HTTP)
-        var kev_response = http_post(self.kev_url + "/v1/systemone", payload)
-        var answers_json = extract_answers(kev_response)
+        let kev_response = http_post(self.kev_url + "/v1/systemone", payload)
+        let answers_json = extract_answers(kev_response)
         
         # Build the substrate cell
-        var prev_hash = self.last_hash
-        var timestamp_ms = now_ms()
-        var cell_id = String("mojo-") + String(self.request_count)
+        let prev_hash = self.last_hash
+        let timestamp_ms = now_ms()
+        let cell_id = String("mojo-") + String(self.request_count)
         
         # Compute the cell's canonical hash
-        var canonical = String(cell_id) + "|" + String(self.conversation_id) + "|" + \
+        let canonical = String(cell_id) + "|" + String(self.conversation_id) + "|" + \
                        String(prev_hash) + "|" + String(answers_json) + "|" + \
                        String(timestamp_ms)
-        var cell_hash_int = fnv1a_64(canonical)
-        var cell_hash = format_hash(cell_hash_int)
+        let cell_hash_int = fnv1a_64(canonical)
+        let cell_hash = format_hash(cell_hash_int)
         
         # POST to substrate worker
-        var cell_payload = String("{") + \
+        let cell_payload = String("{") + \
             "\"id\":\"" + String(cell_id) + "\"," + \
             "\"type\":\"kev-call\"," + \
             "\"state\":\"" + escape_json(answers_json) + "\"," + \
@@ -98,15 +98,15 @@ struct SubstrateClient:
             "\"hash\":\"" + String(cell_hash) + "\"" + \
             "}"
         
-        var substrate_response = http_post(self.substrate_url + "/api/cell", cell_payload)
-        var embedding_id = extract_embedding_id(substrate_response)
+        let substrate_response = http_post(self.substrate_url + "/api/cell", cell_payload)
+        let embedding_id = extract_embedding_id(substrate_response)
         
         # Update chain
         self.last_hash = cell_hash
         self.request_count += 1
         
-        var t1 = now_ms()
-        var latency_ms = Float64(t1 - t0)
+        let t1 = now_ms()
+        let latency_ms = Float64(t1 - t0)
         
         return SubstrateResult(
             answers_json=answers_json,
@@ -117,11 +117,11 @@ struct SubstrateClient:
             latency_ms=latency_ms,
         )
     
-    def jev_search(self, query: String, top_k: Int = 5) -> String:
+    fn jev_search(self, query: String, top_k: Int = 5) -> String:
         """Search the substrate canon via JEV. Returns JSON results."""
-        var payload = String("{") + \
+        let payload = String("{") + \
             "\"query\":\"" + escape_json(query) + "\"," + \
             "\"top_k\":" + String(top_k) + \
             "}"
-        var response = http_post(self.substrate_url + "/api/jev/search", payload)
+        let response = http_post(self.substrate_url + "/api/jev/search", payload)
         return response

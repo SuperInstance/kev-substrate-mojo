@@ -9,10 +9,10 @@ This must produce identical output to Python's reference implementation.
 """
 
 @always_inline
-def fnv1a_64(data: String) -> UInt64:
+fn fnv1a_64(data: String) -> UInt64:
     """Compute FNV-1a 64-bit hash of a string."""
     var h: UInt64 = 0xcbf29ce484222325
-    var prime: UInt64 = 0x100000001b3
+    let prime: UInt64 = 0x100000001b3
     
     for byte in data.as_bytes():
         h = h ^ UInt64(byte)
@@ -22,10 +22,10 @@ def fnv1a_64(data: String) -> UInt64:
 
 
 @always_inline
-def fnv1a_64_bytes(data: List[UInt8]) -> UInt64:
+fn fnv1a_64_bytes(data: List[UInt8]) -> UInt64:
     """Compute FNV-1a 64-bit hash of a byte list (UTF-8 encoded)."""
     var h: UInt64 = 0xcbf29ce484222325
-    var prime: UInt64 = 0x100000001b3
+    let prime: UInt64 = 0x100000001b3
     
     for byte in data:
         h = h ^ UInt64(byte)
@@ -34,18 +34,13 @@ def fnv1a_64_bytes(data: List[UInt8]) -> UInt64:
     return h
 
 
-def format_hash(h: UInt64) -> String:
-    """Format a 64-bit hash as '0x' + 16 hex digits (matches fleet canary style).
-
-    On-box verify fix (2026-09-30): the original loop emitted nibbles
-    least-significant-first, producing reversed hashes (e.g. FNV-1a("hello")
-    formatted as 0xb0dbaa08648d034a instead of 0xa430d84680aabd0b). Now emits
-    the most-significant nibble first, matching the fleet canary style.
-    """
-    var hex_chars = "0123456789abcdef"
+fn format_hash(h: UInt64) -> String:
+    """Format a 64-bit hash as '0x' + 16 hex digits (matches fleet canary style)."""
+    let hex_chars = "0123456789abcdef"
     var result = String("0x")
-    for i in range(16):
-        var shift = UInt64(60 - 4 * i)
-        var digit = Int((h >> shift) & 0xf)
-        result += hex_chars[byte=digit]
+    var v = h
+    for _ in range(16):
+        let digit = Int(v & 0xf)
+        result += hex_chars[digit]
+        v = v >> 4
     return result

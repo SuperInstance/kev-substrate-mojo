@@ -22,7 +22,7 @@ struct SplineSnap:
     var basis: String       # quantum basis
     var extra_dims: String  # JSON dict (duck/batten, etc.)
     
-    def __init__(out self, snap_id: String, t: Float64, position_x: Float64, position_y: Float64,
+    fn __init__(inout self, snap_id: String, t: Float64, position_x: Float64, position_y: Float64,
                 question: String, answer_type: String, answer_value: String,
                 confidence: Float64, basis: String = "|+⟩/|−⟩",
                 extra_dims: String = "{}"):
@@ -37,15 +37,15 @@ struct SplineSnap:
         self.basis = basis
         self.extra_dims = extra_dims
     
-    def is_duck(self) -> Bool:
+    fn is_duck(self) -> Bool:
         """True if confidence is high enough to be a precision duck (anchor)."""
         return self.confidence >= 0.7
     
-    def is_batten(self) -> Bool:
+    fn is_batten(self) -> Bool:
         """True if confidence is low (organizes but doesn't fill)."""
         return self.confidence < 0.7
     
-    def classification(self) -> String:
+    fn classification(self) -> String:
         """Return 'duck', 'batten', or 'skip'."""
         if self.confidence >= 0.95:
             return "skip"  # trust the substrate, no snap needed
@@ -54,7 +54,7 @@ struct SplineSnap:
         else:
             return "batten"
     
-    def to_dict(self) -> String:
+    fn to_dict(self) -> String:
         """Render as a JSON dict (for embedding in cell state)."""
         return String("{") + \
             "\"snap_id\":\"" + String(self.snap_id) + "\"," + \
@@ -70,18 +70,18 @@ struct SplineSnap:
             "}"
 
 
-def make_snap(question: String, answer_type: String, answer_value: String, confidence: Float64) -> SplineSnap:
+fn make_snap(question: String, answer_type: String, answer_value: String, confidence: Float64) -> SplineSnap:
     """Convenience: make a snap with auto-generated id and current time."""
-    var snap_id = String("snap-") + String(current_nanos())
-    var t = Float64(current_nanos()) / 1e9
-    var pos_x = Float64(hash(question) % 1000) / 1000.0
-    var pos_y = confidence
-    var extra_dims = String("{\"classification\":\"") + classify(confidence) + "\"}"
+    let snap_id = String("snap-") + String(current_nanos())
+    let t = Float64(current_nanos()) / 1e9
+    let pos_x = Float64(hash(question) % 1000) / 1000.0
+    let pos_y = confidence
+    let extra_dims = String("{\"classification\":\"") + classify(confidence) + "\"}"
     return SplineSnap(snap_id, t, pos_x, pos_y, question, answer_type, answer_value, confidence,
                      "|+⟩/|−⟩", extra_dims)
 
 
-def classify(confidence: Float64) -> String:
+fn classify(confidence: Float64) -> String:
     if confidence >= 0.95:
         return "skip"
     elif confidence >= 0.7:
